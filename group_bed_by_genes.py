@@ -148,3 +148,74 @@ def add_to_group_dict(gene_dict, group_dict, gene_id, transcript, gene_region, p
 	return
 
 
+def compare_variant_and_gene(gene_dict, group_dict, gene_id, people, group, start, stop, out_fh, line):
+	"""
+	Called after checking whether group variants were within the gene region
+	This checks each possible gene region and calls add_to_group_dict to modify group_dict if there are variants in those gene regions
+	Will modify group dict though calls to add_to_group_dict
+	"""
+	if gene_id not in group_dict.keys():
+		group_dict[gene_id] = {}
+		group_dict[gene_id]['total'] = 0
+		group_dict[gene_id]['total_exons'] = 0
+
+	for person in people:
+		if person not in gene_dict[gene_id][group]:
+			gene_dict[gene_id][group].append(person)
+			group_dict[gene_id]['total'] += 1
+
+	for transcript in gene_dict[gene_id]['transcripts']:
+		#first check upstream for this transcript
+		if check_in(start, stop, int(gene_dict[gene_id][transcript]['upstream'][0]), int(gene_dict[gene_id][transcript]['upstream'][1])):
+			add_to_group_dict(gene_dict, group_dict, gene_id, transcript, 'upstream', people, out_fh, line, 'upstream')
+
+		if check_in(start, stop, int(gene_dict[gene_id][transcript]['downstream'][0]), int(gene_dict[gene_id][transcript]['downstream'][1])):
+			add_to_group_dict(gene_dict, group_dict, gene_id, transcript, 'downstream', people, out_fh, line, 'downstream')
+
+		if gene_dict[gene_id]['strand'] == '+':
+			i = 1
+			while i <= gene_dict[gene_id][transcript]['num_exons_so_far']:
+				if check_in(start, stop, int(gene_dict[gene_id][transcript]['exon_{}'.format(i)][0]), int(gene_dict[gene_id][transcript]['exon_{}'.format(i)][1])):
+					add_to_group_dict(gene_dict, group_dict, gene_id, transcript, 'exon_{}'.format(i), people, out_fh, line, 'exon_{}'.format(i))
+
+					#TO ONLY COUNT EXONS
+					for person in people:
+						if person not in gene_dict[gene_id]['{}_exons'.format(group)]:
+							gene_dict[gene_id]['{}_exons'.format(group)].append(person)
+							group_dict[gene_id]['total_exons'] += 1
+						else:
+							continue
+
+				if i < gene_dict[gene_id][transcript]['num_exons_so_far']: #the number of introns will always be 1 less than this  
+					if check_in(start, stop, int(gene_dict[gene_id][transcript]['intron_{}'.format(i)][0]), int(gene_dict[gene_id][transcript]['intron_{}'.format(i)][1])):
+						add_to_group_dict(gene_dict, group_dict, gene_id, transcript, 'intron_{}'.format(i), people, out_fh, line, 'intron_{}'.format(i))
+
+				i += 1
+
+		elif gene_dict[gene_id]['strand'] == '-':
+			i = 1
+			while i <= gene_dict[gene_id][transcript]['num_exons_so_far']:
+				if check_in(start, stop, int(gene_dict[gene_id][transcript]['exon_-{}'.format(i)][0]), int(gene_dict[gene_id][transcript]['exon_-{}'.format(i)][1])):
+					add_to_group_dict(gene_dict, group_dict, gene_id, transcript, 'exon_-{}'.format(i), people, out_fh, line, 'exon_{}'.format(convert_neg_strand_num(gene_dict[gene_id][transcript]['num_exons_so_far'], i, True)))
+
+					#TO ONLY COUNT EXONS
+					for person in people:
+						if person not in gene_dict[gene_id]['{}_exons'.format(group)]:
+							gene_dict[gene_id]['{}_exons'.format(group)].append(person)
+							group_dict[gene_id]['total_exons'] += 1
+						else:
+							continue
+
+				if i < gene_dict[gene_id][transcript]['num_exons_so_far']: #the number of introns will always be 1 less than this
+					if check_in(start, stop, int(gene_dict[gene_id][transcript]['intron_-{}'.format(i)][0]), int(gene_dict[gene_id][transcript]['intron_-{}'.format(i)][1])):
+						add_to_group_dict(gene_dict, group_dict, gene_id, transcript, 'intron_-{}'.format(i), people, out_fh, line, 'intron_{}'.format(convert_neg_strand_num(gene_dict[gene_id][transcript]['num_exons_so_far'], i, False)))
+
+				i += 1
+
+
+	return 
+
+
+#################################################################################################
+#########Functions used when comparing the group dicts at the end to write out counts############
+#################################################################################################
