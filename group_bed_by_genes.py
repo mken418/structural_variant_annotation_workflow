@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import collections
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gtf', required=True, help='use the gff with the accession names converted to the chromosome names')
@@ -219,3 +220,40 @@ def compare_variant_and_gene(gene_dict, group_dict, gene_id, people, group, star
 #################################################################################################
 #########Functions used when comparing the group dicts at the end to write out counts############
 #################################################################################################
+def check_group_prescence(gene_dict, gene_id, transcript, gene_region, gene_region_output_formatted, out_fh, **kwargs):
+	"""
+	Checks if a variant present in one sample group is present in the other sample groups, and then writes out the group counts for each gene region into the output file
+	kwargs refers to the group_dicts from each sample bed. They key should be the group name, because that is what will be written out
+	In the main code body, the group dicts will be passed into **kwargs in order of the the samlpe names from the beginning argparse. kwargs keeps the order.
+	"""
+	out_fh.write(gene_dict[gene_id]['chromo']+'\t'+str(gene_dict[gene_id][transcript][gene_region][0])+'\t'+str(gene_dict[gene_id][transcript][gene_region][1])+'\t'+str(gene_id)+'\t'+gene_dict[gene_id]['strand']+'\t'+gene_dict[gene_id]['name']+'\t'+gene_dict[gene_id]['product']+'\t'+transcript+'\t'+gene_region_output_formatted+'\t')	
+
+	group_counts = collections.OrderedDict()
+	#key is sample group name, value is the group_dict
+	for name,group_dict in kwargs.items():
+		try: #will fail is gene region or transcript isnt present in the dict
+			group_counts[name] = group_dict[gene_id][transcript][gene_region]['counts']
+		except: 
+			group_counts[name] = 0
+
+	length = len(group_counts.keys())
+	i = 0 
+	for name, count in group_counts.items():
+		i += 1
+		if i < length:
+			out_fh.write(str(count)+'\t')
+		else:
+			out_fh.write(str(count)+'\n')
+
+	return	
+
+
+
+
+##########################################################################################################################################
+###########################################################    Code Body         #########################################################
+##########################################################################################################################################
+############################################################
+#parse gff into dict
+gene_dict = {}
+
