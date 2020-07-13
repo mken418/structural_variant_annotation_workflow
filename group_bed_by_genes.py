@@ -11,6 +11,12 @@ parser.add_argument('--sample_name', action='append', required=True, help='Sampl
 args = parser.parse_args()
 
 
+"""
+Important note: the GTF is in a custom format. So GTF based. This code is currently meant to parse the RefSeq GTF (limited format) downloaded from the UCSC table browser.
+This parsing code expects the GTF to have been queryed with the mygene python script to add the gene names, gene descriptions, and gene ids
+"""
+
+
 print(args)
 print(len(args.input_bed), len(args.sample_name))
 
@@ -253,7 +259,39 @@ def check_group_prescence(gene_dict, gene_id, transcript, gene_region, gene_regi
 ##########################################################################################################################################
 ###########################################################    Code Body         #########################################################
 ##########################################################################################################################################
-############################################################
+
 #parse gff into dict
 gene_dict = {}
 
+fh = open(args.gtf, 'r')
+for line in fh:
+	line = line.strip()
+	line = line.split('\t')
+	chromo = line[0]
+	if 'alt' in chromo: #skipping alt contigs for now	
+		continue
+
+	gene_region = line[2]
+
+	start = line[3]
+	stop = line[4]
+
+	strand = line[6]
+
+	gene_name = line[9]
+	gene_desc = line[10]
+
+	if line[11] == "No_hit":
+		continue
+
+	uniq_gene_id = line[11]
+
+	line[8] = line[8].replace('"', '')
+	line[8] = line[8].replace(';', '')
+
+	trans_col = line[8].split()
+	transcript_id = trans_col[3]
+
+	if uniq_gene_id not in gene_dict.keys():
+		first_occurance_gene_id = True
+		add_count_values_to_gene_dict(gene_dict, chromo, gene_region, start, stop, strand, gene_name, gene_desc, transcript_id, uniq_gene_id, first_occurance_gene_id)		
