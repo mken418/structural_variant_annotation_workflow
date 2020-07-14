@@ -3,6 +3,7 @@
 import argparse
 import sys
 import collections
+import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gtf', required=True, help='use the gff with the accession names converted to the chromosome names')
