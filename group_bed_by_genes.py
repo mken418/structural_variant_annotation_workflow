@@ -4,6 +4,7 @@ import argparse
 import sys
 import collections
 import subprocess
+from pprint import pprint
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gtf', required=True, help='use the gff with the accession names converted to the chromosome names')
@@ -24,8 +25,6 @@ Important notes:
 """
 
 
-print(args)
-print(len(args.input_bed), len(args.sample_name))
 
 #####################################
 #####Pre-flight checks###############
@@ -364,11 +363,12 @@ for gene_id in gene_dict.keys():
 ########################################################
 #Now parse the groups bed files against the dict
 sample_var_dicts = collections.OrderedDict() #will be a dict of dictionaries
-i = 0
+i = -1
 for bed in args.input_bed:
+	i += 1
 	sample_var_dicts[args.sample_name[i]] = {}
 	fh = open(bed, 'r')
-	out_fh = open(args.args.sample_name[i]+'.tsv', 'w')
+	out_fh = open(args.sample_name[i]+'.tsv', 'w')
 
 	for line in fh:
 		if line.startswith('#'):
@@ -413,6 +413,10 @@ for sample in args.sample_name:
 	else:
 		out_fh.write(sample+'\n')
 
+
+
+
+
 #list will contain gene_ids and gene_id+'_'+transcript_id+'_'+region to account for regions that were added in previous group iterations
 already_added = []
 
@@ -421,21 +425,21 @@ for sample in args.sample_name:
 		if gene_id not in already_added:
 			out_fh.write(gene_dict[gene_id]['chromo']+'\t'+str(min(gene_dict[gene_id]['coords']))+'\t'+str(max(gene_dict[gene_id]['coords']))+'\t'+str(gene_id)+'\t'+gene_dict[gene_id]['strand']+'\t'+gene_dict[gene_id]['name']+'\t'+gene_dict[gene_id]['product']+'\t'+'full_window'+'\t'+'full_window'+'\t')
 			i = 0
-			for sample in args.sample_name:
+			for nest_sample in args.sample_name:
 				i += 1
 				if i < len(args.sample_name):
-					out_fh.write(str(len(gene_dict[gene_id][sample]))+'\t')
+					out_fh.write(str(len(gene_dict[gene_id][nest_sample]))+'\t')
 				else:
-					out_fh.write(str(len(gene_dict[gene_id][sample]))+'\n')
+					out_fh.write(str(len(gene_dict[gene_id][nest_sample]))+'\n')
 
 			out_fh.write(gene_dict[gene_id]['chromo']+'\t'+str(min(gene_dict[gene_id]['coords']))+'\t'+str(max(gene_dict[gene_id]['coords']))+'\t'+str(gene_id)+'\t'+gene_dict[gene_id]['strand']+'\t'+gene_dict[gene_id]['name']+'\t'+gene_dict[gene_id]['product']+'\t'+'only_exon_counts'+'\t'+'only_exon_counts'+'\t')
 			i = 0
-			for sample in args.sample_name:
+			for nest2_sample in args.sample_name:
 				i += 1
 				if i < len(args.sample_name):
-					out_fh.write(str(len(gene_dict[gene_id]['{}_exons'.format(sample)]))+'\t')
+					out_fh.write(str(len(gene_dict[gene_id]['{}_exons'.format(nest2_sample)]))+'\t')
 				else:
-					out_fh.write(str(len(gene_dict[gene_id]['{}_exons'.format(sample)]))+'\n')
+					out_fh.write(str(len(gene_dict[gene_id]['{}_exons'.format(nest2_sample)]))+'\n')
 
 			already_added.append(gene_id)
 
@@ -493,6 +497,6 @@ out_fh.close()
 #sort output to new file
 proc = subprocess.Popen(['sort', '-k', '1,1', '-k', '2,2n'], stdin=open(args.gene_group_output+'.tsv', 'r'), stdout=subprocess.PIPE)
 proc_string = str(proc.communicate()[0], 'utf-8')
-out_fh = open(args.gene_group_output+'sorted.tsv', 'w')
+out_fh = open(args.gene_group_output+'.sorted.tsv', 'w')
 out_fh.write(proc_string)
 out_fh.close()
