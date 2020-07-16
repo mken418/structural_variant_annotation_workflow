@@ -16,6 +16,8 @@ args = parser.parse_args()
 
 """
 Important notes:
+	--Use python3 
+
 	-- the GTF is in a custom format. So GTF based. This code is currently meant to parse the RefSeq GTF (limited format) downloaded from the UCSC table browser.
 	This parsing code expects the GTF to have been queryed with the mygene python script to add the gene names, gene descriptions, and gene ids
 
@@ -390,7 +392,7 @@ for bed in args.input_bed:
 		for gene_id in gene_dict.keys():
 			if chromo == gene_dict[gene_id]['chromo']:
 				if (start >= min(gene_dict[gene_id]['coords']) and stop <= max(gene_dict[gene_id]['coords'])) or (start <= min(gene_dict[gene_id]['coords']) and stop >= min(gene_dict[gene_id]['coords'])) or (start <= max(gene_dict[gene_id]['coords']) and stop >= max(gene_dict[gene_id]['coords'])): #if variant is  within the gene region including upstream
-					compare_variant_and_gene(gene_dict, sample_var_dicts[args.sample_name[i]], gene_id, people, 'probands', start, stop, out_fh, line)
+					compare_variant_and_gene(gene_dict, sample_var_dicts[args.sample_name[i]], gene_id, people, args.sample_name[i], start, stop, out_fh, line)
 				else:
 					continue
 			else:
