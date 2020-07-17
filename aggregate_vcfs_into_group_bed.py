@@ -83,7 +83,7 @@ for vcf in os.listdir(args.path):
 
 
 #write out combined unique variant to file
-out_fh = open(args.output+'.tsv', 'w')
+out_fh = open(args.output+'.bed', 'w')
 out_fh.write('#contig\tstart_locus\tstop_locus\tlength\tvar_type\tindividuals\ttotal_individuals\n')
 
 for key, value in who_has_it.items():
@@ -105,8 +105,8 @@ out_fh.close()
 
 
 #sort the output file
-proc = subprocess.Popen(['sort', '-k', '1,1', '-k', '2,2n'], stdin=open(args.output+'.tsv', 'r'), stdout=subprocess.PIPE)
+proc = subprocess.Popen(['sort', '-k', '1,1', '-k', '2,2n'], stdin=open(args.output+'.bed', 'r'), stdout=subprocess.PIPE)
 proc_string = str(proc.communicate()[0], 'utf-8')
-out_fh = open(args.output+'.sorted.tsv', 'w')
+out_fh = open(args.output+'.sorted.bed', 'w')
 out_fh.write(proc_string)
 out_fh.close()
