@@ -3,7 +3,7 @@ This set of scripts can be used take individual VCFs from one or more groups of 
 
 ## Workflow order
 1. aggregate_vcfs_into_group_bed.py
-  * Run this script on an input directory of individual VCFs to combine all the variants into a bed-style TSV file containing each unique variant, variant type, and the individuals who have it.
+    * Run this script on an input directory of individual VCFs to combine all the variants into a bed-style TSV file containing each unique variant, variant type, and the individuals who have it.
   * Input VCFs must be individual VCFs, and must be in the same directory. If you plan to run this script on multiple groups of samples, each group should be i na separate directory.
 
 2. annotate_UCSC_RefSeq_gtf.py
